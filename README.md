@@ -197,7 +197,7 @@ HandwrittenDigitRecognitionApp/
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+I welcome contributions! Here's how you can help:
 
 1. **🍴 Fork** the repository
 2. **🌿 Create** a feature branch (`git checkout -b feature/AmazingFeature`)
@@ -267,21 +267,6 @@ export TESSDATA_PREFIX=/usr/local/share/tessdata
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👥 Team
-
-<div align="center">
-
-| Role | Responsibilities |
-|------|-----------------|
-| **👨‍💻 Developer 1** | GUI Design & Canvas Implementation |
-| **👩‍💻 Developer 2** | AI Integration & Image Processing |
-| **🎨 UI/UX Designer** | User Interface & Experience |
-| **🧪 QA Tester** | Quality Assurance & Bug Testing |
-
-</div>
 
 ---
 
