@@ -161,8 +161,9 @@ def configure_tesseract():
     """
     Cross-platform Tesseract setup.
 
-    Returns True if configured successfully.
-    Exits the application with a friendly error if not found.
+    Detects which language data files are actually installed and
+    returns the list of available OCR language codes.
+    Exits the application with a friendly error if Tesseract is not found.
     """
     tesseract_path = _find_tesseract_executable()
     if not tesseract_path:
@@ -202,4 +203,89 @@ def configure_tesseract():
 
     logging.info(f"Tesseract configured: {tesseract_path}")
     logging.info(f"Tessdata: {tessdata}")
-    return True
+
+    # --- Discover which language data files are actually installed ---
+    global AVAILABLE_OCR_LANGUAGES
+    tessdata_dir = tessdata or os.path.join(os.path.dirname(tesseract_path), 'tessdata')
+    AVAILABLE_OCR_LANGUAGES = _detect_available_languages(tessdata_dir)
+    logging.info(f"Available OCR languages: {sorted(AVAILABLE_OCR_LANGUAGES)}")
+    return AVAILABLE_OCR_LANGUAGES
+
+
+def _detect_available_languages(tessdata_dir):
+    """Scan the tessdata directory for installed .traineddata files."""
+    available = set()
+    try:
+        for filename in os.listdir(tessdata_dir):
+            if filename.endswith('.traineddata'):
+                lang_code = filename.replace('.traineddata', '')
+                available.add(lang_code)
+    except OSError as e:
+        logging.warning(f"Could not scan tessdata directory: {e}")
+
+    # Always include 'eng' since we verified it exists
+    available.add('eng')
+    return available
+
+
+# Built once at startup
+AVAILABLE_OCR_LANGUAGES = None
+
+
+def get_available_ocr_languages():
+    """Return the set of installed Tesseract language codes."""
+    global AVAILABLE_OCR_LANGUAGES
+    return AVAILABLE_OCR_LANGUAGES
+
+
+def resolve_ocr_language(requested_code):
+    """
+    Resolve a requested OCR language code to one that's actually installed.
+
+    Falls back to 'eng' if the requested language is not available.
+    Logs a warning so the user knows to install the missing traineddata.
+    """
+    available = get_available_ocr_languages()
+    if available is None:
+        return requested_code  # Not yet configured, trust the caller
+
+    if requested_code in available:
+        return requested_code
+
+    logging.warning(
+        f"OCR language '{requested_code}' not installed. "
+        f"Falling back to 'eng'. Download the traineddata file to enable this language."
+    )
+    return 'eng'
+
+
+# ---------------------------------------------------------------------------
+# gTTS language support
+# ---------------------------------------------------------------------------
+
+# gTTS supports a limited set of language codes.
+# These are the codes known to work; anything else falls back to 'en'.
+GTTS_SUPPORTED_CODES = frozenset({
+    'af', 'ar', 'bg', 'bn', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en',
+    'eo', 'es', 'et', 'fi', 'fr', 'gu', 'hi', 'hr', 'hu', 'hy', 'id', 'is',
+    'it', 'ja', 'jw', 'km', 'kn', 'ko', 'la', 'lv', 'mk', 'ml', 'mr', 'my',
+    'ne', 'nl', 'no', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sq', 'sr', 'su',
+    'sv', 'sw', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-cn',
+    'zh-tw',
+})
+
+
+def resolve_tts_language(requested_code):
+    """
+    Resolve a requested TTS language code to one gTTS actually supports.
+
+    Falls back to 'en' if unsupported. Logs a warning.
+    """
+    if requested_code in GTTS_SUPPORTED_CODES:
+        return requested_code
+
+    logging.warning(
+        f"TTS language '{requested_code}' not supported by gTTS. "
+        f"Falling back to 'en' for pronunciation."
+    )
+    return 'en'

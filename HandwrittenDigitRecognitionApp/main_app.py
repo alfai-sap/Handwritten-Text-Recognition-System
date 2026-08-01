@@ -33,7 +33,10 @@ from src.config import (
     LANGUAGES, LANGUAGE_NAMES,
     DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG,
     configure_tesseract,
+    resolve_ocr_language,
+    resolve_tts_language,
 )
+
 from src.services.ocr_service import recognize_text_from_image
 from src.services.translation_service import translate_text
 from src.services.dictionary_service import get_word_description, get_pronunciation_guide
@@ -55,6 +58,7 @@ logging.basicConfig(
 )
 
 # Configure Tesseract (cross-platform) — must happen before OCR use
+# Returns set of available language codes; used by resolve_ocr_language()
 configure_tesseract()
 
 
@@ -349,7 +353,8 @@ class MultilingualRecognitionApp:
 
             # --- OCR (synchronous — fast enough for user feedback) ---
             source_lang_name = self.source_lang.get()
-            ocr_code = self.languages[source_lang_name]['ocr']
+            requested_code = self.languages[source_lang_name]['ocr']
+            ocr_code = resolve_ocr_language(requested_code)
             text = recognize_text_from_image(cv_image, ocr_code)
 
             if not text:
@@ -491,7 +496,8 @@ class MultilingualRecognitionApp:
                 return
 
             target_lang_name = self.target_lang.get()
-            lang_code = self.languages[target_lang_name]['translate']
+            requested_tts_code = self.languages[target_lang_name]['translate']
+            lang_code = resolve_tts_language(requested_tts_code)
 
             def _play():
                 try:
