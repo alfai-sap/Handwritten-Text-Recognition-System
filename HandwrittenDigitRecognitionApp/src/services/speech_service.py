@@ -132,10 +132,10 @@ class SpeechService:
                     self._remove_file(filepath)
                 try:
                     os.rmdir(self.temp_audio_dir)
-                except OSError:
-                    pass
-        except Exception:
-            pass
+                except OSError as e:
+                    logging.warning(f"Could not remove temp audio directory: {e}")
+        except Exception as e:
+            logging.warning(f"Speech service cleanup error: {e}")
 
     def _remove_file(self, filepath):
         try:

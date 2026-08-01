@@ -14,6 +14,7 @@ Refactored per AGENTS.md:
   - Fixed: centralized constants in config.py (no more magic numbers)
 """
 
+import os
 import cv2
 import numpy as np
 import logging
@@ -41,9 +42,16 @@ from src.services.speech_service import SpeechService
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
+LOG_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'app.log'
+)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_FILE, encoding='utf-8'),
+        logging.StreamHandler(),
+    ],
 )
 
 # Configure Tesseract (cross-platform) — must happen before OCR use
@@ -368,6 +376,9 @@ class MultilingualRecognitionApp:
             logging.error(f"Recognition error: {e}")
             if not real_time:
                 messagebox.showerror("Error", str(e))
+            # Real-time mode: log the error without interrupting the user
+            else:
+                self.recognized_text_label.config(text="Recognition failed — retrying...")
 
     def _capture_canvas(self):
         """Screenshot the canvas region."""
@@ -511,8 +522,12 @@ class MultilingualRecognitionApp:
             self.executor.shutdown(wait=False)
             if hasattr(self, 'speech_service'):
                 self.speech_service.cleanup()
-        except Exception:
-            pass
+        except Exception as e:
+            # Log but do not raise — __del__ must not fail
+            try:
+                logging.warning(f"Cleanup during __del__ failed: {e}")
+            except Exception:
+                pass
 
 
 # ---------------------------------------------------------------------------
