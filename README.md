@@ -112,3 +112,4 @@ HandwrittenDigitRecognitionApp/
 | Translation fails | Requires internet connection |
 | No audio | Check system audio; gTTS needs internet |
 
+Star this repository if you found it interesting :)
