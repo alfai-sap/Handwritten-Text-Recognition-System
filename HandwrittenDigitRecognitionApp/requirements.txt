@@ -1,12 +1,9 @@
-
 opencv-python
 numpy
 pytesseract
 googletrans==3.1.0a0
-easyocr
-keras-ocr
-paddlepaddle
-paddleocr
-transformers
-torch
+gTTS
+pygame
+requests
+wikitextparser
 Pillow

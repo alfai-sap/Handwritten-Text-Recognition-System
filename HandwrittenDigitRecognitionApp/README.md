@@ -1,102 +1,108 @@
-# APP-DEV-PROJECT-3C
-HANDWRITTEN RECOGNITION APP
+# Multilingual Handwriting Recognition App
 
-APP DEV PROJECT GUIDE
+A desktop application that recognizes handwritten text, translates it into 22+ languages, and provides text-to-speech pronunciation — all from a drawing canvas or uploaded image.
 
-1. Setting Up the Environment and Libraries
+---
 
-Task: Set up the development environment, install libraries.
+## Prerequisites
 
-Steps:
+### 1. Python 3.8+
 
-Install Python (version 3.x) and an IDE like VS Code or PyCharm.
+Download from [python.org](https://www.python.org/downloads/). Ensure **"Add Python to PATH"** is checked during installation.
 
-Install necessary libraries using pip:
+### 2. Tesseract OCR
 
-pip install 
-opencv-python-headless numpy
-tensorflow pillow tk
+This app relies on Tesseract OCR for text recognition.
 
-Verify installations by testing imports in Python:
+1. Download the installer from [GitHub UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
+2. Run the installer and note the install path (default: `C:\Program Files\Tesseract-OCR\`)
+3. **During installation, check "Additional language data"** — at minimum, English is required
+4. Verify installation:
+   ```
+   "C:\Program Files\Tesseract-OCR\tesseract.exe" --version
+   ```
 
-import cv2
-import numpy as np
-import tensorflow as tf
-from tkinter import *
+---
 
+## Setup
 
-Assigned to: Both can set up their own environments initially. One person can focus on dependencies while the other starts with UI design.
+### 1. Navigate to the project folder
 
+```powershell
+cd HandwrittenDigitRecognitionApp
+```
 
+### 2. Create a virtual environment (recommended)
 
-2. Build the Tkinter GUI
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
 
-Task: Create the GUI layout in Tkinter.
+### 3. Install dependencies
 
-Steps:
+```powershell
+pip install -r requirements.txt
+```
 
-Set up the main Tkinter window with the title, dimensions, and basic layout.
+---
 
-Create three main screens in the window:
+## Running the Application
 
-1. Main Menu: Buttons for "Draw Digit" and "Upload Image".
+```powershell
+python APP_DEV_PROJECT.py
+```
 
-2. Draw Canvas: A white canvas area where users can draw digits.
+---
 
-3. Upload Image Screen: A file selection option for image upload.
+## How to Use
 
+| Feature | How |
+|---|---|
+| **Draw** | Use the pen tool to write on the canvas with your mouse |
+| **Erase** | Switch to eraser to remove strokes |
+| **Upload Image** | Click **Upload** to select an image file (PNG, JPG, BMP, etc.) |
+| **Recognize** | Click **Recognize** to run OCR on the canvas or uploaded image |
+| **Real-time** | Toggle **Real-time Recognition** for continuous detection while drawing |
+| **Translate** | Select source and target languages, click **Recognize** |
+| **Pronounce** | Click **🔊 Listen** to hear the translated text spoken aloud |
+| **Swap Languages** | Click **⇄** to swap source and target languages |
+| **Clear** | Click **Clear** to reset the canvas |
 
+---
 
-Add Buttons for switching between screens and a Label to display prediction results.
+## Supported Languages
 
+English, Filipino, Cebuano, Spanish, French, German, Chinese, Japanese, Italian, Portuguese, Russian, Korean, Arabic, Dutch, Greek, Hindi, Turkish, Vietnamese, Thai, Polish, Indonesian, Swedish
 
-Assigned to: Teammate 1 works on the layout and canvas drawing functionality, while Teammate 2 sets up the file upload screen and button functionality.
+---
 
+## Troubleshooting
 
+| Problem | Solution |
+|---|---|
+| **Tesseract not found** | Ensure Tesseract is installed at `C:\Program Files\Tesseract-OCR\` with `eng.traineddata` in the `tessdata` subfolder |
+| **No text detected** | Write larger, use clear strokes, or try uploading a pre-scanned image |
+| **Translation fails** | Requires internet connection — the app uses Google Translate API |
+| **No audio** | Ensure your system has audio output enabled |
+| **gTTS error** | Check your internet connection; gTTS requires online access |
 
-3. Implement Digit Input Options
+---
 
-Task: Create options for drawing and uploading digits.
+## Dependencies
 
-Steps:
+| Package | Purpose |
+|---|---|
+| `opencv-python` | Image processing and enhancement |
+| `numpy` | Array operations for image data |
+| `pytesseract` | Tesseract OCR wrapper |
+| `googletrans` | Text translation |
+| `gTTS` | Text-to-speech generation |
+| `pygame` | Audio playback |
+| `requests` | API calls (dictionary, Wikipedia) |
+| `wikitextparser` | Parsing Wiktionary definitions |
+| `Pillow` | Image capture and manipulation |
 
-Drawing:
-
-Use Tkinter Canvas for drawing. Track mouse movement events to draw on the canvas.
-
-Include Clear and Predict buttons.
-
-Save the canvas drawing as an image (e.g., .png) in grayscale to process later.
-
-
-Image Upload:
-
-Use tkinter.filedialog to allow users to select an image file.
-
-Convert the uploaded image to grayscale for processing.
-
-
-Assigned to: Teammate 1 can handle canvas drawing and image saving, while Teammate 2 takes care of the image upload and conversion.
-
-
-4. Pre-trained Model and AI Integration
-
-Task: Load a pre-trained model and use it for digit prediction.
-
-Steps:
-
-Download a pre-trained MNIST model (trained on handwritten digits).
-
-Load the model using TensorFlow or Keras:
-
-from tensorflow.keras.models import load_model
-model = load_model('mnist_model.h5')
-
-Process the drawn or uploaded images:
-
-Resize images to 28x28 pixels, convert to grayscale, and normalize pixel values.
-
-Predict the digit using:
 
 prediction = model.predict(image)
 predicted_digit = np.argmax(prediction)
