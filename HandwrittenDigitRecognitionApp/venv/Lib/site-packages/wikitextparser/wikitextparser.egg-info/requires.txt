@@ -1,0 +1,10 @@
+regex>=2022.9.11
+wcwidth
+
+[dev]
+path
+coverage
+twine
+
+[tests]
+pytest
