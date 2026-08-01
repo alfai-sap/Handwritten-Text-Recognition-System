@@ -3,6 +3,7 @@ Translation Service — Google Translate wrapper.
 Extracted from the God class per AGENTS.md separation of concerns.
 """
 
+import asyncio
 import logging
 from googletrans import Translator
 
@@ -33,8 +34,11 @@ def translate_text(text, source_lang_name, target_lang_name):
     src_code = LANGUAGES[source_lang_name]['translate']
     dest_code = LANGUAGES[target_lang_name]['translate']
 
-    translator = Translator()
-    result = translator.translate(text, src=src_code, dest=dest_code)
+    async def _translate():
+        translator = Translator()
+        return await translator.translate(text, src=src_code, dest=dest_code)
+
+    result = asyncio.run(_translate())
 
     if result and result.text:
         return result.text

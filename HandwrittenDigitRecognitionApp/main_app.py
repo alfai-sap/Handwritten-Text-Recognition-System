@@ -12,7 +12,13 @@ Refactored per AGENTS.md:
   - Fixed: uploaded images processed directly instead of re-screenshotting
   - Fixed: removed all unused imports and dead variables
   - Fixed: centralized constants in config.py (no more magic numbers)
+  - Added: Groq LLM-powered translation description service
+  - Added: .env file support for API key management
 """
+
+# Load environment variables from .env BEFORE any other imports
+from dotenv import load_dotenv
+load_dotenv()
 
 import os
 import cv2
@@ -40,6 +46,7 @@ from src.config import (
 from src.services.ocr_service import recognize_text_from_image
 from src.services.translation_service import translate_text
 from src.services.dictionary_service import get_word_description, get_pronunciation_guide
+from src.services.description_service import get_translation_description
 from src.services.speech_service import SpeechService
 
 # ---------------------------------------------------------------------------
@@ -401,8 +408,8 @@ class MultilingualRecognitionApp:
 
     @staticmethod
     def _fetch_translation_and_description(text, source_lang_name, target_lang_name):
-        """Runs in a background thread — does translation + dictionary lookups."""
-        result = {'translation': None, 'pronunciation': None, 'descriptions': []}
+        """Runs in a background thread — does translation + LLM description."""
+        result = {'translation': None, 'pronunciation': None, 'description': None}
 
         # Translation
         try:
@@ -411,23 +418,32 @@ class MultilingualRecognitionApp:
             logging.error(f"Translation error: {e}")
 
         if result['translation']:
-            target_code = LANGUAGES[target_lang_name]['translate']
+            # LLM-powered description (dissects meaning, grammar, usage)
+            try:
+                result['description'] = get_translation_description(
+                    text, result['translation'], source_lang_name, target_lang_name
+                )
+            except Exception as e:
+                logging.error(f"LLM description error: {e}")
+                # Fallback: word-by-word dictionary lookup
+                target_code = LANGUAGES[target_lang_name]['translate']
+                descriptions = []
+                words = result['translation'].split()
+                for word in words[:MAX_WORDS_TO_DESCRIBE]:
+                    try:
+                        desc = get_word_description(word, target_code)
+                        if desc:
+                            descriptions.append(f"\n{word}:\n{desc}")
+                    except Exception as ex:
+                        logging.error(f"Dictionary error for '{word}': {ex}")
+                if descriptions:
+                    result['description'] = "Definitions:" + "".join(descriptions)
 
-            # Pronunciation guide
+            # Pronunciation guide (Wiktionary IPA)
             try:
                 result['pronunciation'] = get_pronunciation_guide(result['translation'])
             except Exception as e:
                 logging.error(f"Pronunciation guide error: {e}")
-
-            # Word descriptions (first N words)
-            words = result['translation'].split()
-            for word in words[:MAX_WORDS_TO_DESCRIBE]:
-                try:
-                    desc = get_word_description(word, target_code)
-                    if desc:
-                        result['descriptions'].append(f"\n{word}:\n{desc}")
-                except Exception as e:
-                    logging.error(f"Dictionary error for '{word}': {e}")
 
         return result
 
@@ -447,10 +463,10 @@ class MultilingualRecognitionApp:
             full_text = f"Language: {target_lang_name}\n"
             if data['pronunciation']:
                 full_text += f"{data['pronunciation']}\n"
-            if data['descriptions']:
-                full_text += "\nDefinitions:" + "".join(data['descriptions'])
+            if data['description']:
+                full_text += f"\n{data['description']}"
             else:
-                full_text += "\nNo detailed definitions available."
+                full_text += "\nNo detailed description available."
 
             self.description_label.config(text=full_text)
 
