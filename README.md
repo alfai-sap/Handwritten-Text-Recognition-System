@@ -1,4 +1,4 @@
-# Multilingual Handwriting Recognition App
+# Multilingual Handwriting Recognition System
 
 A Python desktop app (Tkinter) that recognizes handwritten text, translates it into 22+ languages, speaks translations aloud, and looks up word definitions — all from a drawing canvas or uploaded image.
 
